@@ -34,6 +34,8 @@ body {
   min-height: 100vh;
   gap: 24px;
   padding: 24px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f1f5 50%, #0f1724 100%);
+
 }
 
 /* ========================
@@ -180,10 +182,10 @@ header {
 ======================== */
 footer {
   margin-top: auto;
-  color: var(--muted);
+  color: #0f1724;
   font-size: 13px;
   text-align: center;
-  padding: 12px 0;
+  padding: 1px 0;
 }
 
 /* ========================

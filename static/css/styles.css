@@ -1,12 +1,14 @@
 /* ========================
    Estilos generales
 ======================== */
+/*background: linear-gradient(135deg, #000000, #000000);*/
 body {
-    background: linear-gradient(135deg, #000000, #0978ee);
+    background: radial-gradient(circle, #ffffff, #0f1724);
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
+    align-items: flex-start; /* Para que el formulario no quede pegado al centro vertical */
+    padding: 40px 20px; /* agrega espacio superior e inferior */
+    min-height: 100vh;
     margin: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
@@ -15,11 +17,12 @@ body {
    Contenedor del formulario
 ======================== */
 form {
-    background-color: #ffffff;
-    padding: 40px 30px;
-    border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-    width: 450px;
+    background-color: #0f1724;
+    padding: 50px 40px; /* más espacio para los campos adicionales */
+    border-radius: 12px;
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 550px; /* más ancho para formularios grandes */
     box-sizing: border-box;
 }
 
@@ -28,9 +31,9 @@ form {
 ======================== */
 h2 {
     text-align: center;
-    color: #333333;
+    color: #ffffff;
     margin-bottom: 30px;
-    font-size: 28px;
+    font-size: 30px;
 }
 
 /* ========================
@@ -40,7 +43,7 @@ label {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #555555;
+    color: #fcfcfc;
 }
 
 /* ========================
@@ -50,10 +53,10 @@ input[type="email"],
 input[type="password"],
 input[type="text"] {
     width: 100%;
-    padding: 12px 10px;
+    padding: 14px 12px;
     margin-bottom: 20px;
     border: 1px solid #cccccc;
-    border-radius: 6px;
+    border-radius: 8px;
     box-sizing: border-box;
     font-size: 16px;
 }
@@ -61,36 +64,36 @@ input[type="text"] {
 input[type="email"]:focus,
 input[type="password"]:focus,
 input[type="text"]:focus {
-    border-color: #007bff;
+    border-color: #000000;
     outline: none;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
 }
 
 /* ========================
    Botones
 ======================== */
-/* Botón general del formulario */
 button:not(.toggle-password) {
     width: 100%;
-    padding: 12px;
-    background-color: #007bff;
-    color: white;
+    padding: 14px;
+    background-color: #ffffff;
+    color: rgb(0, 0, 0);
     font-size: 16px;
     font-weight: 600;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    margin-bottom: 15px;
 }
 
 button:not(.toggle-password):hover {
-    background-color: #0056b3;
+    background-color: #727272;
 }
 
 /* Botón del ojo */
 .toggle-password {
-    flex: 0 0 auto;        /* no se estira */
-    margin-right: 10px;     /* espacio con el input */
+    flex: 0 0 auto;
+    margin-left: 10px;
     background: none;
     border: none;
     cursor: pointer;
@@ -105,13 +108,9 @@ button:not(.toggle-password):hover {
 ======================== */
 .app-info {
     text-align: center;
-    color: #666666;
+    color: #ffffff;
     margin-bottom: 25px;
-    font-size: 14px;
-}
-
-button:first-of-type {
-    margin-bottom: 15px; /* separa el primer botón del segundo */
+    font-size: 18px;
 }
 
 /* ========================
@@ -125,10 +124,11 @@ button:first-of-type {
     list-style: none;
     padding: 10px 15px;
     border-radius: 6px;
-    background-color: #fff3cd; /* amarillo claro tipo advertencia */
-    color: #856404; /* texto oscuro */
-    border: 1px solid #ffeeba;
-    font-size: 14px;
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #ffffff;
+    font-size: 16px;
+    
 }
 
 .flash-messages li {
@@ -145,14 +145,37 @@ button:first-of-type {
 .password-container {
     display: flex;
     align-items: center;
-    margin-bottom: 20px; /* espacio entre campos */
+    margin-bottom: 20px;
 }
 
 .password-container input {
-    flex: 1;            /* ocupa todo el espacio restante */
-    padding: 12px 10px; /* padding normal */
+    flex: 1;
+    padding: 14px 12px;
     font-size: 16px;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 1px solid #cccccc;
     box-sizing: border-box;
+}
+
+/* ========================
+   Responsividad
+======================== */
+@media (max-width: 600px) {
+    form {
+        padding: 30px 20px;
+    }
+
+    h2 {
+        font-size: 24px;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+        padding: 12px 10px;
+    }
+
+    button:not(.toggle-password) {
+        padding: 12px;
+    }
 }
