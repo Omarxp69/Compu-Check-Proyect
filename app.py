@@ -18,6 +18,7 @@ app.secret_key = os.environ.get("SECRET_KEY")
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -161,10 +162,10 @@ def dashboard():
 
 @app.route('/update_profile', methods=['POST'])
 @role_required('admin', 'moderador', 'user')
+
+
+
 def update_profile():
-
-
-
     user_id = session.get("user_id")
     if not user_id:
         flash("⚠️ Debes iniciar sesión.")
@@ -294,6 +295,16 @@ def perfil():
     user_profile_pic=user['foto_perfil']
 
     return render_template('profile.html',user_name=user_name,user_profile_pic=user_profile_pic)
+
+# aqui se crearan salas, eliminiran salas , mostraran salas
+@app.route('/Salas', methods=['GET', 'POST'])
+@role_required('admin')
+def salas():
+    user = get_current_user()
+    user_name=user['name'].capitalize()
+    user_role=user['role']
+    user_profile_pic=user['foto_perfil']
+    return render_template('salas.html',user_name=user_name,user_role=user_role,user_profile_pic=user_profile_pic)
 
 
 
