@@ -266,3 +266,39 @@ footer {
   background: #1d4ed8;
   transform: translateY(-1px);
 }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(16,24,40,0.05);
+  font-size: 14px;
+  color: var(--text);
+}
+
+table th,
+table td {
+  padding: 12px 16px;
+  text-align: left;
+  border-bottom: 1px solid rgba(16,24,40,0.1);
+}
+
+table th {
+  background: rgba(37,99,235,0.1);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+table tr:hover {
+  background: rgba(37,99,235,0.05);
+}
+
+table img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}

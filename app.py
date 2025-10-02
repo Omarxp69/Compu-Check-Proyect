@@ -3,13 +3,14 @@ from validaciones import correo_valido, contrasena_valida
 from conexion_db import *
 from flask import Flask,render_template,make_response,redirect,request,flash,url_for,session
 import bcrypt
-from conexion_db import obtener_usuario_por_email, insertar_usuario, get_connection
+from conexion_db import obtener_usuario_por_email, insertar_usuario, get_connection,agregar_salon, obtener_Salones,obtener_todos_usuarios
 from functools import wraps
 import os
 from dotenv import load_dotenv
 import os
 load_dotenv()
 from werkzeug.utils import secure_filename
+import glob 
 
 
 app=Flask(__name__)
@@ -132,7 +133,7 @@ def get_current_user():
     if not email:
         return None  # Usuario no logueado
     user = obtener_usuario_por_email(email)  # Trae todos los datos de la DB
-    print(user)
+    #print(user)
     if not user:
         return None  # Usuario no encontrado en la DB
 
@@ -162,9 +163,6 @@ def dashboard():
 
 @app.route('/update_profile', methods=['POST'])
 @role_required('admin', 'moderador', 'user')
-
-
-
 def update_profile():
     user_id = session.get("user_id")
     if not user_id:
@@ -180,8 +178,16 @@ def update_profile():
     file = request.files.get('foto_perfil')
     if file and allowed_file(file.filename):
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+        pattern = os.path.join(app.config['UPLOAD_FOLDER'], f"user_{user_id}.*")
+        for old_file in glob.glob(pattern):
+            try:
+                os.remove(old_file)
+            except OSError:
+                pass
+
         extension = file.filename.rsplit('.', 1)[1].lower()
-        filename = f"user_{user_id}.{extension}"
+        filename = secure_filename(f"user_{user_id}.{extension}")
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
         relative_path = f"uploads/{filename}"
@@ -202,67 +208,11 @@ def update_profile():
         cursor.execute("UPDATE users SET genero = %s WHERE id = %s", (genero, user_id))
         flash("✅ Género actualizado.")
         updated = True
-
     if updated:
         db.commit()
-
     cursor.close()
     db.close()
-
     # Nunca redirijas a login, siempre al dashboard
-    return redirect(url_for('dashboard'))
-
-    user_id = session.get("user_id")
-    if not user_id:
-        flash("⚠️ Debes iniciar sesión.")
-        return redirect(url_for('login'))
-
-    db = get_connection()
-    cursor = db.cursor()
-
-    # --- FOTO DE PERFIL ---
-    if 'foto_perfil' in request.files:
-        file = request.files['foto_perfil']
-        if file and allowed_file(file.filename):
-            # Crear carpeta si no existe
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-
-            # Nombre único para evitar sobrescribir
-            extension = file.filename.rsplit('.', 1)[1].lower()
-            filename = f"user_{user_id}.{extension}"
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-
-            # Guardar ruta relativa en la DB
-            relative_path = f"uploads/{filename}"
-            cursor.execute(
-                "UPDATE users SET foto_perfil = %s WHERE id = %s",
-                (relative_path, user_id)
-            )
-            flash("✅ Foto de perfil actualizada con éxito.")
-
-    # --- FECHA DE NACIMIENTO ---
-    fecha = request.form.get("fecha_nacimiento")
-    if fecha:
-        cursor.execute(
-            "UPDATE users SET fecha_nacimiento = %s WHERE id = %s",
-            (fecha, user_id)
-        )
-        flash("✅ Fecha de nacimiento actualizada.")
-
-    # --- GÉNERO ---
-    genero = request.form.get("genero")
-    if genero:
-        cursor.execute(
-            "UPDATE users SET genero = %s WHERE id = %s",
-            (genero, user_id)
-        )
-        flash("✅ Género actualizado.")
-
-    db.commit()
-    cursor.close()
-    db.close()
-
     return redirect(url_for('dashboard'))
 
 @app.route('/delete_account', methods=['POST'])
@@ -294,7 +244,7 @@ def perfil():
     user_role=user['role']
     user_profile_pic=user['foto_perfil']
 
-    return render_template('profile.html',user_name=user_name,user_profile_pic=user_profile_pic)
+    return render_template('profile.html',user_name=user_name,user_profile_pic=user_profile_pic,user_role=user_role)
 
 # aqui se crearan salas, eliminiran salas , mostraran salas
 @app.route('/Salas', methods=['GET', 'POST'])
@@ -304,7 +254,130 @@ def salas():
     user_name=user['name'].capitalize()
     user_role=user['role']
     user_profile_pic=user['foto_perfil']
+
+    if request.method == 'POST':
+        nombre_salon = request.form['nombre_salon'].strip()
+        ubicacion = request.form['ubicacion'].strip()
+        estado = request.form['estado'].strip()
+        descripcion = request.form['descripcion'].strip() 
+
+        # Validaciones básicas
+        #si el nombre de la sala esta vacio o es muy largo
+        if not nombre_salon or len(nombre_salon) > 100:
+            flash("❌ El nombre de la sala es inválido.")
+            return render_template('salas.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
+        #si la ubicacion esta vacia o es muy larga
+        if not ubicacion or len(ubicacion) > 150:
+            flash("❌ La ubicación es inválida.")
+            return render_template('salas.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
+        #si el estado no es uno de los permitidos
+        if estado not in ('activo','mantenimiento','fuera de servicio'):
+            flash("❌ Estado no válido.")
+            return render_template('salas.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
+        #si la descripcion es muy larga
+        if len(descripcion) > 500:  # opcional, límite de caracteres
+            flash("❌ La descripción es demasiado larga.")
+            return render_template('salas.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
+        agregar_salon(nombre_salon, ubicacion, estado, descripcion)
+        flash("✅ Sala agregada exitosamente.")
     return render_template('salas.html',user_name=user_name,user_role=user_role,user_profile_pic=user_profile_pic)
+
+
+
+
+@app.route('/Gestionar_Usuarios', methods=['GET', 'POST'])
+@role_required('admin', 'moderador')
+def gestionar_usuarios():
+
+
+    user = get_current_user()
+    user_name = user['name'].capitalize()
+    user_role = user['role']
+    user_profile_pic = user['foto_perfil']
+
+    # Leer parámetros de filtro desde GET
+    filtro_columna = request.args.get('filtro_columna', 'id')
+    orden = request.args.get('orden', 'ASC')
+    search = request.args.get('search', '').strip()  # nuevo parámetro de búsqueda
+
+    usuarios = obtener_todos_usuarios(filtro_columna=filtro_columna, orden=orden, search=search)
+
+    return render_template('Gestionar_Usuarios.html',
+        user_name=user_name,
+        user_role=user_role,
+        user_profile_pic=user_profile_pic,
+        usuarios=usuarios,
+        filtro_columna=filtro_columna,
+        orden=orden,
+        search=search
+    )
+
+@app.route('/actualizar_usuario', methods=['POST'])
+@role_required('admin')
+def actualizar_usuario():
+    user_id = request.form.get('user_id')
+    nuevo_rol = request.form.get('rol')
+    nuevo_estado = request.form.get('estado')
+    admin_password = request.form.get('admin_password')
+
+    if not admin_password:
+        flash("❌ Debes ingresar tu contraseña para cambiar el rol.")
+        return redirect(url_for('gestionar_usuarios'))
+
+    # Verificar contraseña del admin
+    admin = get_current_user()
+    if not bcrypt.checkpw(admin_password.encode('utf-8'), obtener_usuario_por_email(admin['email'])[5].encode()):
+        flash("❌ Contraseña incorrecta.")
+        return redirect(url_for('gestionar_usuarios'))
+
+    # Actualizar rol y estado en la base de datos
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("UPDATE users SET rol=%s, estado=%s WHERE id=%s", (nuevo_rol, nuevo_estado, user_id))
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    flash("✅ Usuario actualizado correctamente.")
+    return redirect(url_for('gestionar_usuarios'))
+
+
+@app.route('/Gestionar_Salas', methods=['GET', 'POST'])
+@role_required('admin', 'moderador')
+def gestionar_salas():
+
+
+    user = get_current_user()
+    user_name = user['name'].capitalize()
+    user_role = user['role']
+    user_profile_pic = user['foto_perfil']
+
+    # Leer parámetros de filtro desde GET
+    filtro_columna = request.args.get('filtro_columna', 'id')
+    orden = request.args.get('orden', 'ASC')
+    search = request.args.get('search', '').strip()  # nuevo parámetro de búsqueda
+
+    usuarios = obtener_todos_usuarios(filtro_columna=filtro_columna, orden=orden, search=search)
+
+    return render_template('Gestionar_Salas.html',
+        user_name=user_name,
+        user_role=user_role,
+        user_profile_pic=user_profile_pic,
+        usuarios=usuarios,
+        filtro_columna=filtro_columna,
+        orden=orden,
+        search=search
+    )
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -45,7 +45,17 @@
       </header>
       <section class="form-section">
         <h2>Agregar Nueva Sala</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
         <form action="{{ url_for('salas') }}" method="POST">
+          
           <label for="nombre_salon">Nombre de la Sala:</label>
           <input type="text" id="nombre_salon" name="nombre_salon" required>
 
@@ -58,8 +68,10 @@
             <option value="mantenimiento">Mantenimiento</option>
             <option value="fuera de servicio">Fuera de Servicio</option>
           </select>
+
           <label for="descripcion">Descripción:</label>
           <textarea id="descripcion" name="descripcion" rows="3" placeholder="Escribe una descripción breve de la sala..."></textarea>
+          
           <button type="submit">Agregar Sala</button>
         </form>
       </section>
