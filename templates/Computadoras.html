@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="../static/css/index_style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compuchek - Salas</title>
+  <style>
+    fieldset.form-group {
+      border: 2px solid rgba(37, 99, 235, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 4px 14px rgba(16,24,40,0.05);
+    }
+
+    fieldset.form-group legend {
+      font-weight: 700;
+      color: var(--accent, #2563eb);
+      font-size: 20px;
+      padding: 0 10px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background: var(--accent, #2563eb);
+      color: white;
+      font-weight: 600;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #1e4db7;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="profile">
+        {% if user_profile_pic %}
+          <img src="{{ url_for('static', filename=user_profile_pic) }}" alt="Foto de perfil" class="profile-img">
+        {% else %}
+          <div class="profile-img">👤</div>
+        {% endif %}
+        <span>{{ user_name }}</span>
+      </div>
+
+      <h2>Compuchek</h2>
+      <ul>
+        <li><a href="/">🏠 Inicio</a></li>
+        <li><a href="/Salas">🛋️ Salas</a></li>
+        <li><a href="/Gestionar_Salas">🛠️ Gestionar Salas</a></li>
+        <li><a href="/Computadoras">💻Computadoras</a></li>
+        <li><a href="/Gestionar_Computadoras">🛠️ Gestionar Computadoras</a></li>
+        <li><a href="/Gestionar_Usuarios">👥 Gestionar Usuarios</a></li>
+        <li><a href="/reports">📊 Reportes</a></li>
+        <li><a href="/profile">✏️ Editar Perfil</a></li>
+        <li><a href="/logout">🚪 Cerrar sesión</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main -->
+    <main class="dashboard-main">
+      <header>
+        <h1>Crear Computadora</h1>
+      </header>
+      <section class="form-section">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('computadoras') }}" method="POST">
+
+          <!-- ================== MOUSE ================== -->
+          <fieldset class="form-group">
+            <legend>Mouse</legend>
+            <label for="mouse_marca">Marca:</label>
+            <input type="text" id="mouse_marca" name="mouse_marca" required>
+
+            <label for="mouse_tipo">Tipo:</label>
+            <select id="mouse_tipo" name="mouse_tipo">
+              <option value="óptico">Óptico</option>
+              <option value="láser">Láser</option>
+              <option value="inalámbrico">Inalámbrico</option>
+              <option value="cableado">Cableado</option>
+            </select>
+
+            <label for="mouse_estado">Estado:</label>
+            <select id="mouse_estado" name="mouse_estado">
+              <option value="operativa">Operativa</option>
+              <option value="en reparación">En reparación</option>
+              <option value="dañada">Dañada</option>
+            </select>
+          </fieldset>
+
+          <!-- ================== TECLADO ================== -->
+          <fieldset class="form-group">
+            <legend>Teclado</legend>
+            <label for="teclado_marca">Marca:</label>
+            <input type="text" id="teclado_marca" name="teclado_marca" required>
+
+            <label for="teclado_tipo">Tipo:</label>
+            <select id="teclado_tipo" name="teclado_tipo">
+              <option value="mecánico">Mecánico</option>
+              <option value="membrana">Membrana</option>
+              <option value="inalámbrico">Inalámbrico</option>
+              <option value="cableado">Cableado</option>
+            </select>
+
+            <label for="teclado_estado">Estado:</label>
+            <select id="teclado_estado" name="teclado_estado">
+              <option value="operativa">Operativa</option>
+              <option value="en reparación">En reparación</option>
+              <option value="dañada">Dañada</option>
+            </select>
+          </fieldset>
+
+          <!-- ================== PANTALLA ================== -->
+          <fieldset class="form-group">
+            <legend>Monitor</legend>
+            <label for="pantalla_marca">Marca:</label>
+            <input type="text" id="pantalla_marca" name="pantalla_marca" required>
+
+            <label for="pantalla_estado">Estado:</label>
+            <select id="pantalla_estado" name="pantalla_estado">
+              <option value="operativa">Operativa</option>
+              <option value="en reparación">En reparación</option>
+              <option value="dañada">Dañada</option>
+            </select>
+          </fieldset>
+
+          <!-- ================== COMPUTADORA ================== -->
+          <fieldset class="form-group">
+            <legend>Computadora</legend>
+            <label for="matricula">Matrícula:</label>
+            <input type="text" id="matricula" name="matricula" required>
+
+            <label for="marca">Marca:</label>
+            <input type="text" id="marca" name="marca">
+
+            <label for="sistema_operativo">Sistema Operativo:</label>
+            <input type="text" id="sistema_operativo" name="sistema_operativo">
+
+            <label for="estado_computadora">Estado:</label>
+            <select id="estado_computadora" name="estado_computadora">
+              <option value="bueno">Bueno</option>
+              <option value="malo">Malo</option>
+              <option value="dañado">Dañado</option>
+            </select>
+
+            <label for="id_salon">Salón:</label>
+            <select id="id_salon" name="id_salon" required>
+              {% for id, nombre in salones %}
+                <option value="{{ id }}">{{ nombre }}</option>
+              {% endfor %}
+            </select>
+          </fieldset>
+
+          <button type="submit">Registrar Computadora con Periféricos</button>
+        </form>
+      </section>
+
+      <footer>
+        &copy; 2025 Compuchek. Todos los derechos reservados.
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

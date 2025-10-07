@@ -5,9 +5,53 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Compuchek - Salas</title>
+  <style>
+    fieldset.form-group {
+      border: 2px solid rgba(37, 99, 235, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 4px 14px rgba(16,24,40,0.05);
+    }
 
+    fieldset.form-group legend {
+      font-weight: 700;
+      color: var(--accent, #2563eb);
+      font-size: 20px;
+      padding: 0 10px;
+      margin-bottom: 10px;
+    }
 
-  
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background: var(--accent, #2563eb);
+      color: white;
+      font-weight: 600;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #1e4db7;
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard-container">
@@ -55,24 +99,26 @@
           {% endif %}
         {% endwith %}
         <form action="{{ url_for('salas') }}" method="POST">
-          
-          <label for="nombre_salon">Nombre de la Sala:</label>
-          <input type="text" id="nombre_salon" name="nombre_salon" required>
+          <fieldset class="form-group">
+            <legend>Sala</legend>
+            <label for="nombre_salon">Nombre de la Sala:</label>
+            <input type="text" id="nombre_salon" name="nombre_salon" required>
 
-          <label for="ubicacion">Ubicación:</label>
-          <input type="text" id="ubicacion" name="ubicacion" required>
+            <label for="ubicacion">Ubicación:</label>
+            <input type="text" id="ubicacion" name="ubicacion" required>
 
-          <label for="estado">Estado:</label>
-          <select id="estado" name="estado">
-            <option value="activo" selected>Activo</option>
-            <option value="mantenimiento">Mantenimiento</option>
-            <option value="fuera de servicio">Fuera de Servicio</option>
-          </select>
+            <label for="estado">Estado:</label>
+            <select id="estado" name="estado">
+              <option value="activo" selected>Activo</option>
+              <option value="mantenimiento">Mantenimiento</option>
+              <option value="fuera de servicio">Fuera de Servicio</option>
+            </select>
 
-          <label for="descripcion">Descripción:</label>
-          <textarea id="descripcion" name="descripcion" rows="3" placeholder="Escribe una descripción breve de la sala..."></textarea>
-          
-          <button type="submit">Agregar Sala</button>
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion" rows="3" placeholder="Escribe una descripción breve de la sala..."></textarea>
+            
+            <button type="submit">Agregar Sala</button>
+          </fieldset>
         </form>
       </section>
 

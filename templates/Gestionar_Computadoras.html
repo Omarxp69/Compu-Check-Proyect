@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="../static/css/index_style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compuchek - Gestionar_Usuarios</title>
+  <style>
+    form[method="get"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.05)), var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 20px rgba(16,24,40,0.05);
+      
+
+    }
+
+    form[method="get"] input[type="text"] {
+      flex: 1 1 200px;
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(16,24,40,0.15);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font-size: 15px;
+      transition: border var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+
+    form[method="get"] input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+
+    form[method="get"] select {
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(16,24,40,0.15);
+      background: rgba(255,255,255,0.05);
+      color: var(--text);
+      font-size: 15px;
+      transition: border var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+
+    form[method="get"] select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+
+    form[method="get"] button {
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition);
+    }
+
+    form[method="get"] button:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    /* Responsive para mobile */
+    @media (max-width: 700px) {
+      form[method="get"] {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+    /* ========================
+      Formulario actualizar usuario - expandido
+    ======================== */
+    form[method="post"] {
+      display: grid;
+      grid-template-rows: repeat(2, auto); /* 2 filas */
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* columnas automáticas */
+      gap: 10px 12px;
+      padding: 0; /* sin padding extra */
+      background: transparent; /* sin fondo */
+      box-shadow: none; /* sin sombra */
+      width: 100%; /* ocupa todo el ancho */
+      margin-bottom: 20px;
+    }
+
+    /* Labels sobre los inputs */
+    form[method="post"] label {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    /* Inputs y selects simples */
+    form[method="post"] input,
+    form[method="post"] select {
+      width: 100%;
+      padding: 8px 10px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(16,24,40,0.15);
+      background: rgba(255,255,255,0.02); /* muy ligero para no parecer cuadro */
+      color: var(--text);
+      font-size: 14px;
+      transition: border var(--transition), background var(--transition), box-shadow var(--transition);
+    }
+
+    form[method="post"] input:focus,
+    form[method="post"] select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.05);
+      box-shadow: 0 0 0 2px rgba(37,99,235,0.15);
+    }
+
+    /* Botón ocupa toda la segunda fila */
+    form[method="post"] button {
+      grid-column: 1 / -1;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition), transform var(--transition);
+    }
+
+    form[method="post"] button:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+
+    /* Responsive para pantallas pequeñas */
+    @media (max-width: 600px) {
+      form[method="post"] {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+      }
+      form[method="post"] button {
+        grid-column: 1 / -1;
+      }
+    }
+    input:disabled,
+    select:disabled {
+        cursor: not-allowed; /* Muestra un símbolo de “prohibido” 🚫 */
+        background-color: rgba(0,0,0,0.05); /* opcional, para que se vea distinto */
+    }
+
+        
+    
+  </style>
+
+
+  
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="profile">
+        {% if user_profile_pic %}
+          <img src="{{ url_for('static', filename=user_profile_pic) }}" alt="Foto de perfil" class="profile-img">
+        {% else %}
+          <div class="profile-img">👤</div>
+        {% endif %}
+        <span>{{ user_name }}</span>
+      </div>
+
+      <h2>Compuchek</h2>
+      <ul>
+
+
+        <li><a href="/">🏠 Inicio</a></li>
+        {% if user_role == 'admin' %}
+          <li><a href="/Salas">🛋️ Salas</a></li>
+          <li><a href="/Gestionar_Salas">🛠️ Gestionar Salas</a></li>
+          <li><a href="/Computadoras">💻Computadoras</a></li>
+          <li><a href="/Gestionar_Computadoras">🛠️ Gestionar Computadoras</a></li>
+          <li><a href="/reports">📊 Reportes</a></li>
+        {% elif user_role == 'moderador' %}
+          <li><a href="/reports">📊 Reportes</a></li>
+        {% endif %}
+        <li><a href="/profile">✏️ Editar Perfil</a></li>
+        <li><a href="/logout">🚪 Cerrar sesión</a></li>
+        
+      </ul>
+    </aside>
+
+    <!-- Main -->
+    <main class="dashboard-main">
+      <header>
+        <h1>Gestionar Computadoras</h1>
+      </header>
+      {% if user_role == 'admin' %}
+        <h2>Modificar Computadora</h2>
+        <form method="post" action="{{ url_for('actualizar_computadora') }}">
+            <input type="hidden" id="edit_computadora_id" name="id_computadora">
+
+            <label>ID:</label>
+            <input type="text" id="edit_id_computadora" disabled>
+
+            <label>Matrícula:</label>
+            <input type="text" id="edit_matricula" disabled>
+
+            <label>Sistema Operativo:</label>
+            <input type="text" id="edit_sistema_operativo" name="sistema_operativo" required>
+
+            <label>Estado PC:</label>
+            <select id="edit_estado_pc" name="estado_pc">
+                <option value="bueno">Bueno</option>
+                <option value="malo">Malo</option>
+                <option value="dañado">Dañado</option>
+            </select>
+
+            <label>Estado Pantalla:</label>
+            <select id="edit_estado_pantalla" name="estado_pantalla">
+                <option value="operativa">Operativa</option>
+                <option value="en reparación">En reparación</option>
+                <option value="dañada">Dañada</option>
+            </select>
+
+            <label>Estado Teclado:</label>
+            <select id="edit_estado_teclado" name="estado_teclado">
+                <option value="operativa">Operativa</option>
+                <option value="en reparación">En reparación</option>
+                <option value="dañada">Dañada</option>
+            </select>
+
+            <label>Estado Mouse:</label>
+            <select id="edit_estado_mouse" name="estado_mouse">
+                <option value="operativa">Operativa</option>
+                <option value="en reparación">En reparación</option>
+                <option value="dañada">Dañada</option>
+            </select>
+
+            <label>ID Salon:</label>
+            <input type="text" id="edit_id_salon" name="id_salon" disabled>
+
+            <label>Contraseña del Admin:</label>
+            <input type="password" name="admin_password" placeholder="Ingresa tu contraseña" required>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button type="submit">Actualizar Computadora</button>
+            </div>
+        </form>
+        {% endif %}
+        #Eliminar computadora
+        {% if user_role == 'admin' %}
+        <h2>Eliminar Computadora</h2>
+        <form method="post" id="form-eliminar-computadora" action="{{ url_for('eliminar_computadora') }}">
+            <input type="hidden" id="delete_computadora_id" name="id_computadora">
+
+            <label>ID:</label>
+            <input type="text" id="delete_id_computadora" disabled>
+
+            <label>Matrícula:</label>
+            <input type="text" id="delete_matricula" disabled>
+
+            <label>Sistema Operativo:</label>
+            <input type="text" id="delete_sistema_operativo" disabled>
+
+            <label>Estado PC:</label>
+            <select id="delete_estado_pc" disabled>
+                <option value="bueno">Bueno</option>
+                <option value="malo">Malo</option>
+                <option value="dañado">Dañado</option>
+            </select>
+
+            <label>Estado Pantalla:</label>
+            <select id="delete_estado_pantalla" disabled>
+                <option value="operativa">Operativa</option>
+                <option value="en reparación">En reparación</option>
+                <option value="dañada">Dañada</option>
+            </select>
+
+            <label>Estado Teclado:</label>
+            <select id="delete_estado_teclado" disabled>
+                <option value="operativa">Operativa</option>
+                <option value="en reparación">En reparación</option>
+                <option value="dañada">Dañada</option>
+            </select>
+
+            <label>Estado Mouse:</label>
+            <select id="delete_estado_mouse" disabled>
+                <option value="operativa">Operativa</option>
+                <option value="en reparación">En reparación</option>
+                <option value="dañada">Dañada</option>
+            </select>
+
+            <label>ID Salon:</label>
+            <input type="text" id="delete_id_salon" name="id_salon" readonly>
+
+
+            <label>Contraseña del Admin:</label>
+            <input type="password" name="admin_password" placeholder="Ingresa tu contraseña" required>
+
+            <div style="display:flex; gap:10px; margin-top:10px;">
+              <button type="submit" style="background:red;">Eliminar Computadora</button>
+            </div>
+        </form>
+        {% endif %}
+
+      
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="flash-messages">
+            {% for message in messages %}
+              <div class="flash-message">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      <h2>Mostrar Computadoras</h2>
+      <form method="get" action="{{ url_for('gestionar_computadoras') }}">
+          <label for="Buscar">Buscar:</label>
+          <input type="text" name="search" placeholder="Buscar por ID, matrícula o marca" value="{{ search }}">
+          
+          <label for="filtro_columna">Ordenar por:</label>
+          <select name="filtro_columna" id="filtro_columna">
+              <option value="id_computadora" {% if filtro_columna=='id_computadora' %}selected{% endif %}>ID</option>
+              <option value="matricula" {% if filtro_columna=='matricula' %}selected{% endif %}>Matrícula</option>
+              <option value="marca" {% if filtro_columna=='marca' %}selected{% endif %}>Marca</option>
+              <option value="sistema_operativo" {% if filtro_columna=='sistema_operativo' %}selected{% endif %}>SO</option>
+              <option value="estado" {% if filtro_columna=='estado' %}selected{% endif %}>Estado</option>
+              <option value="fecha_adquisicion" {% if filtro_columna=='fecha_adquisicion' %}selected{% endif %}>Fecha de Adquisición</option>
+              <option value="id_salon" {% if filtro_columna=='id_salon' %}selected{% endif %}>ID Sala</option>
+              <option value="fecha_creacion" {% if filtro_columna=='fecha_creacion' %}selected{% endif %}>Fecha de Creación</option>
+              <option value="updated_at" {% if filtro_columna=='updated_at' %}selected{% endif %}>Fecha de Actualización</option>
+          </select>
+
+          <select name="orden" id="orden">
+              <option value="ASC" {% if orden=='ASC' %}selected{% endif %}>Ascendente</option>
+              <option value="DESC" {% if orden=='DESC' %}selected{% endif %}>Descendente</option>
+          </select>
+
+          <button type="submit">Aplicar</button>
+      </form>
+
+      <table>
+          <thead>
+              <tr>
+                  <th>ID</th>
+                  <th>Matrícula</th>
+                  <th>Marca PC</th>
+                  <th>Sistema Operativo</th>
+                  <th>Estado PC</th>
+                  <th>ID Sala</th>
+                  <th>Nombre Sala</th>
+                  <th>Pantalla</th>
+                  <th>Teclado</th>
+                  <th>Mouse</th>
+                  <th>Fecha Creación PC</th>
+                  <th>Actualizado PC</th>
+
+              </tr>
+          </thead>
+          <tbody>
+            {% for c in computadoras %}
+            <tr>
+                <td>{{ c.id_computadora }}</td>
+                <td>{{ c.matricula }}</td>
+                <td>{{ c.marca_pc }}</td>
+                <td>{{ c.sistema_operativo }}</td>
+                <td>{{ c.estado_pc }}</td>
+                <td>{{ c.id_salon }}</td>
+                <td>{{ c.nombre_salon }}</td>
+                <td>{{ c.marca_pantalla if c.marca_pantalla else '-' }} ({{ c.estado_pantalla if c.estado_pantalla else '-' }})</td>
+                <td>{{ c.marca_teclado if c.marca_teclado else '-' }} ({{ c.tipo_teclado if c.tipo_teclado else '-' }}, {{ c.estado_teclado if c.estado_teclado else '-' }})</td>
+                <td>{{ c.marca_mouse if c.marca_mouse else '-' }} ({{ c.tipo_mouse if c.tipo_mouse else '-' }}, {{ c.estado_mouse if c.estado_mouse else '-' }})</td>
+                <td>{{ c.fecha_creacion_pc }}</td>
+                <td>{{ c.actualizado_pc }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+          
+          <script>
+            const filas = document.querySelectorAll('table tbody tr');
+            filas.forEach(fila => {
+              fila.addEventListener('click', () => {
+                const id = fila.cells[0].innerText;
+                const matricula = fila.cells[1].innerText;
+                const sistema = fila.cells[3].innerText;
+                const estado = fila.cells[4].innerText.toLowerCase();
+                const idSalon = fila.cells[5].innerText; // 👈 Capturamos el id_salon
+
+                const pantallaInfo = fila.cells[7].innerText.split('(');
+                const estadoPantalla = pantallaInfo[1] ? pantallaInfo[1].replace(')', '').trim().toLowerCase() : 'operativa';
+
+                const tecladoInfo = fila.cells[8].innerText.split('(');
+                const tecladoParts = tecladoInfo[1] ? tecladoInfo[1].replace(')', '').split(',').map(p => p.trim()) : [];
+                const estadoTeclado = tecladoParts[1] ? tecladoParts[1].toLowerCase() : 'operativa';
+
+                const mouseInfo = fila.cells[9].innerText.split('(');
+                const mouseParts = mouseInfo[1] ? mouseInfo[1].replace(')', '').split(',').map(p => p.trim()) : [];
+                const estadoMouse = mouseParts[1] ? mouseParts[1].toLowerCase() : 'operativa';
+
+                // ----- Formulario Modificar -----
+                document.getElementById('edit_computadora_id').value = id;
+                document.getElementById('edit_id_computadora').value = id;
+                document.getElementById('edit_matricula').value = matricula;
+                document.getElementById('edit_sistema_operativo').value = sistema;
+                document.getElementById('edit_estado_pc').value = estado;
+                document.getElementById('edit_estado_pantalla').value = estadoPantalla;
+                document.getElementById('edit_estado_teclado').value = estadoTeclado;
+                document.getElementById('edit_estado_mouse').value = estadoMouse;
+                document.getElementById('edit_id_salon').value = idSalon; // 👈 Guardamos id_salon
+
+                // ----- Formulario Eliminar -----
+                document.getElementById('delete_computadora_id').value = id;
+                document.getElementById('delete_id_computadora').value = id;
+                document.getElementById('delete_matricula').value = matricula;
+                document.getElementById('delete_sistema_operativo').value = sistema;
+                document.getElementById('delete_estado_pc').value = estado;
+                document.getElementById('delete_estado_pantalla').value = estadoPantalla;
+                document.getElementById('delete_estado_teclado').value = estadoTeclado;
+                document.getElementById('delete_estado_mouse').value = estadoMouse;
+                document.getElementById('delete_id_salon').value = idSalon; // 👈 Guardamos id_salon
+              });
+            });
+
+            // Confirmación antes de eliminar
+            const formEliminar = document.getElementById('form-eliminar-computadora');
+            formEliminar.addEventListener('submit', (e) => {
+              const confirmar = confirm("¿Estás seguro de eliminar esta computadora? Esta acción no se puede deshacer.");
+              if (!confirmar) e.preventDefault();
+            });
+          </script>
+
+      </table>
+      
+        
+      
+      <footer>
+        &copy; 2025 Compuchek. Todos los derechos reservados.
+      </footer>
+    </main>
+  </div>
+</body>
+</html>
