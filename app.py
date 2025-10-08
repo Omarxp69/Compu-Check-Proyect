@@ -1,19 +1,43 @@
-from config import config
-from validaciones import correo_valido, contrasena_valida 
-from conexion_db import *
 from flask import Flask,render_template,make_response,redirect,request,flash,url_for,session
 import bcrypt
-from conexion_db import obtener_usuario_por_email, insertar_usuario, get_connection,agregar_salon, obtener_Salones,obtener_todos_usuarios,existe_matricula,Cantidad_equipos
 from functools import wraps
 import os
 from dotenv import load_dotenv
-import os
-load_dotenv()
 from werkzeug.utils import secure_filename
 import glob 
 from datetime import timedelta,datetime
 
+from config import config
+from validaciones import correo_valido, contrasena_valida 
+from conexion_db import (
+    get_connection,
+    insertar_usuario,
+    obtener_todos_usuarios,
+    obtener_usuario_por_email,
+    obtener_usuario_por_id,
+    obtener_todos_Salas,
+    Sala_Existe,
+    eliminar_salon,
+    agregar_salon,
+    obtener_Salones,
+    insertar_computadora,
+    existe_matricula,
+    insertar_mouse,
+    insertar_teclado,
+    insertar_pantalla,
+    obtener_id_y_nombre_salones,
+    obtener_computadoras_con_sala_id,
+    Cantidad_equipos,
+    obtener_todas_computadoras,
+    obtener_usuarios_basico,
+    obtener_salon_basico
+)
 
+
+
+
+
+load_dotenv()
 app=Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
 app.permanent_session_lifetime = timedelta(hours=1)
@@ -572,7 +596,7 @@ def computadoras():
     user_name=user['name'].capitalize()
     user_role=user['role']
     user_profile_pic=user['foto_perfil']
-    salones = obtener_id_y_nombre_salones()
+
 
 
 
@@ -602,27 +626,27 @@ def computadoras():
         # Validaciones básicas
         if not matricula or len(matricula) > 50:
             flash("❌ Matrícula inválida.")
-            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic,salones=salones)
+            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
         
         if existe_matricula(matricula):
             flash(f"❌ La matrícula '{matricula}' ya está registrada.")
-            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic, salones=salones)
+            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
 
 
         if not marca or len(marca) > 100:
             flash("❌ Marca inválida.")
-            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic,salones=salones)
+            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
 
         if not sistema_operativo or len(sistema_operativo) > 100:
             flash("❌ Sistema operativo inválido.")
-            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic,salones=salones)
+            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
 
         if not estado_computadora or len(estado_computadora) > 50:
             flash("❌ Estado de la computadora inválido.")
-            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic,salones=salones)
+            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
         if not id_salon or not id_salon.isdigit():
             flash("❌ Salón inválido.")
-            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic,salones=salones)
+            return render_template('Computadoras.html', user_name=user_name, user_role=user_role, user_profile_pic=user_profile_pic)
         id_salon = int(id_salon)
         # Insertar periféricos y obtener sus IDs
 
@@ -635,7 +659,7 @@ def computadoras():
                              id_mouse=id_mouse, id_salon=id_salon)
         Cantidad_equipos(id_salon)
         flash("✅ Computadora agregada exitosamente.")
-    return render_template('Computadoras.html',user_name=user_name,user_role=user_role,user_profile_pic=user_profile_pic,salones=salones)
+    return render_template('Computadoras.html',user_name=user_name,user_role=user_role,user_profile_pic=user_profile_pic)
 
 
 @app.route('/Gestionar_Computadoras', methods=['GET', 'POST'])
@@ -812,6 +836,40 @@ def eliminar_computadora():
             cursor.close()
         if conn:
             conn.close()
+
+
+
+@app.route('/Asignar_Salones',methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'moderador')
+def asignar_salones():
+    user = get_current_user()
+    user_name=user['name'].capitalize()
+    user_role=user['role']
+    user_profile_pic=user['foto_perfil']
+
+    if request.method == 'POST':
+        id_usuario = request.form.get('id_usuario')
+        id_salon = request.form.get('id_salon')
+
+        print(id_usuario)
+        print(id_salon)
+
+        users=obtener_usuarios_basico()
+
+
+
+
+
+    return render_template('Asignar_Salones.html',
+        user_name=user_name,
+        user_role=user_role,
+        user_profile_pic=user_profile_pic,)
+
+    
+
+
+
 
 
 if __name__ == "__main__":

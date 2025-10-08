@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <link rel="stylesheet" href="../static/css/index_style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compuchek - Salas</title>
+  <style>
+    fieldset.form-group {
+      border: 2px solid rgba(37, 99, 235, 0.2);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 4px 14px rgba(16,24,40,0.05);
+    }
+
+    fieldset.form-group legend {
+      font-weight: 700;
+      color: var(--accent, #2563eb);
+      font-size: 20px;
+      padding: 0 10px;
+      margin-bottom: 10px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: 500;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background: var(--accent, #2563eb);
+      color: white;
+      font-weight: 600;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background: #1e4db7;
+    }
+    .tablas-lado-a-lado {
+      display: flex;
+      gap: 20px; /* espacio entre tablas */
+      flex-wrap: wrap; /* se acomodan en vertical si la pantalla es pequeña */
+    }
+
+    .tabla-wrapper {
+      flex: 1; /* ambas tablas ocupan el mismo ancho */
+      min-width: 300px; /* evita que se rompan en pantallas pequeñas */
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="profile">
+        {% if user_profile_pic %}
+          <img src="{{ url_for('static', filename=user_profile_pic) }}" alt="Foto de perfil" class="profile-img">
+        {% else %}
+          <div class="profile-img">👤</div>
+        {% endif %}
+        <span>{{ user_name }}</span>
+      </div>
+
+      <h2>Compuchek</h2>
+      <ul>
+
+
+        <ul>
+          <li><a href="/">🏠 Inicio</a></li>
+        {% if user_role == 'admin' %}
+          <li class="active"><a href="/Salas">🛋️ Salas</a></li>
+          <li><a href="/Gestionar_Salas">🛠️ Gestionar Salas</a></li>
+          <li><a href="/Computadoras">💻Computadoras</a></li>
+          <li><a href="/Gestionar_Computadoras">🛠️ Gestionar Computadoras</a></li>
+          <li><a href="/Gestionar_Usuarios">👥 Gestionar Usuarios</a></li>
+          <li><a href="/Asignar_Salones">👥 Asignar Salones</a></li>
+          <li><a href="/reports">📊 Reportes</a></li>
+        {% elif user_role == 'moderador' %}
+          <li><a href="/Gestionar_Usuarios">👥 Gestionar Usuarios</a></li>
+          <li><a href="/reports">📊 Reportes</a></li>
+        {% endif %}
+        <li><a href="/profile">✏️ Editar Perfil</a></li>
+        <li><a href="/logout">🚪 Cerrar sesión</a></li>
+      </ul>
+    </aside>
+        
+      </ul>
+    </aside>
+
+    <!-- Main -->
+    <main class="dashboard-main">
+      <header>
+        <h1>Crear Salas</h1>
+      </header>
+      <section class="form-section">
+        <h2>Asignar Accesos a salones</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for message in messages %}
+                <div class="flash-message">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('asignar_salones') }}" method="POST">
+          <fieldset class="form-group">
+            <legend>Datos de Asignación</legend>
+            <!-- Seleccionar Usuario -->
+            <label for="usuario">Usuario:</label>
+            <select name="id_usuario" id="usuario" required>
+                <option value="" disabled selected>Selecciona un usuario</option>
+                {% for usuario in usuarios %}
+                <option value="{{ usuario.id }}">{{ usuario.nombre }} {{ usuario.apellido_paterno }}</option>
+                {% endfor %}
+            </select>
+
+            <!-- Seleccionar Salón -->
+            <label for="salon">Salón:</label>
+            <select name="id_salon" id="salon" required>
+                <option value="" disabled selected>Selecciona un salón</option>
+                {% for salon in salones %}
+                <option value="{{ salon.id_salon }}">{{ salon.nombre_salon }} - {{ salon.ubicacion }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit">Asignar Salón</button>
+                    
+          </fieldset>
+        </form>
+      </section>
+      <div class="form-section">
+        <h2>Usuarios y Salones</h2>
+        <div class="tablas-lado-a-lado">
+          <!-- Tabla Usuarios -->
+          <div class="tabla-wrapper">
+            <h3>Usuarios</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for u in usuarios %}
+                <tr>
+                  <td>{{ u[0] }}</td>
+                  <td>{{ u[1] }}</td>
+                  <td>{{ u[2] }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Tabla Salones -->
+          <div class="tabla-wrapper">
+            <h3>Salones</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Ubicación</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for s in salones %}
+                <tr>
+                  <td>{{ s[0] }}</td>
+                  <td>{{ s[1] }}</td>
+                  <td>{{ s[2] }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+      
+      <footer>
+        &copy; 2025 Compuchek. Todos los derechos reservados.
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

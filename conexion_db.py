@@ -86,8 +86,6 @@ def obtener_usuario_por_id(user_id):
     cursor.close()
     conn.close()
     return user
-
-
 def obtener_todos_Salas(filtro_columna='id_salon', orden='ASC', search=''):
     columnas_permitidas = ['id_salon', 'nombre_salon', 'ubicacion', 'cantidad_equipos', 'estado', 'descripcion', 'fecha_creacion', 'updated_at']
     if filtro_columna not in columnas_permitidas:
@@ -122,7 +120,6 @@ def obtener_todos_Salas(filtro_columna='id_salon', orden='ASC', search=''):
     cursor.close()
     conn.close()
     return salones
-
 def Sala_Existe(sala_id):
         conn = get_connection()
         cursor = conn.cursor()
@@ -142,9 +139,7 @@ def eliminar_salon(sala_id):
         conn.commit()
         cursor.close()
         conn.close()
-
 # ===================== SALONES =====================
-
 def agregar_salon(nombre_salon, ubicacion, estado, descripcion):
     conn = get_connection()
     cursor = conn.cursor()
@@ -159,7 +154,6 @@ def agregar_salon(nombre_salon, ubicacion, estado, descripcion):
     cursor.close()
     conn.close()
 # ===================== OBTENER SALONES =====================
-
 def obtener_Salones():
     conn = get_connection()
     cursor = conn.cursor()
@@ -168,7 +162,6 @@ def obtener_Salones():
     cursor.close()
     conn.close()
     return registros
-
 # ===================== COMPUTADORAS =====================
 def insertar_computadora(matricula, marca, sistema_operativo, estado="bueno",
                          fecha_adquisicion=None, id_pantalla=None,
@@ -188,7 +181,6 @@ def insertar_computadora(matricula, marca, sistema_operativo, estado="bueno",
     conn.commit()
     cursor.close()
     conn.close()
-
 def existe_matricula(matricula):
     conn = get_connection()
     cursor = conn.cursor()
@@ -197,7 +189,6 @@ def existe_matricula(matricula):
     cursor.close()
     conn.close()
     return existe
-
 # ===================== MOUSE =====================
 def insertar_mouse(marca, tipo="óptico", estado="operativa", foto=None):
     conn = get_connection()
@@ -214,8 +205,6 @@ def insertar_mouse(marca, tipo="óptico", estado="operativa", foto=None):
     cursor.close()
     conn.close()
     return mouse_id  # retornamos el id
-
-
 # ===================== TECLADOS =====================
 def insertar_teclado(marca, tipo="mecánico", estado="operativa", foto=None):
     conn = get_connection()
@@ -232,8 +221,6 @@ def insertar_teclado(marca, tipo="mecánico", estado="operativa", foto=None):
     cursor.close()
     conn.close()
     return teclado_id  # retornamos el id
-
-
 # ===================== PANTALLAS =====================
 def insertar_pantalla(marca, estado="operativa", foto=None):
     conn = get_connection()
@@ -250,9 +237,7 @@ def insertar_pantalla(marca, estado="operativa", foto=None):
     cursor.close()
     conn.close()
     return pantalla_id  # retornamos el id
-
 # ===================== OBTENER ID Y NOMBRE DE SALONES =====================
-
 def obtener_id_y_nombre_salones():
     conn = get_connection()
     cursor = conn.cursor()
@@ -261,7 +246,6 @@ def obtener_id_y_nombre_salones():
     cursor.close()
     conn.close()
     return resultados
-
 def obtener_computadoras_con_sala_id(sala_id):
     conn = get_connection()
     cursor = conn.cursor()
@@ -270,7 +254,6 @@ def obtener_computadoras_con_sala_id(sala_id):
     cursor.close()
     conn.close()
     return computadoras
-
 def Cantidad_equipos(id_salon):
     conn = get_connection()
     cursor = conn.cursor()
@@ -281,7 +264,6 @@ def Cantidad_equipos(id_salon):
     conn.commit()
     cursor.close()
     conn.close()
-
 def obtener_todas_computadoras(filtro_columna='id_computadora', orden='ASC', search=''):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)  # Para acceder a los nombres de columnas
@@ -375,3 +357,101 @@ def obtener_todas_computadoras(filtro_columna='id_computadora', orden='ASC', sea
 
 
 
+def obtener_usuarios_basico(filtro_columna='id', orden='ASC', search=''):
+    columnas_permitidas = ['id', 'nombre','email']
+    if filtro_columna not in columnas_permitidas:
+        filtro_columna = 'id'
+    orden = orden.upper()
+    if orden not in ['ASC', 'DESC']:
+        orden = 'ASC'
+   
+   
+    conn = get_connection()
+    cursor = conn.cursor()
+
+
+    query = f"""
+        SELECT id, nombre, email
+        FROM users
+        WHERE estado = 1
+    """
+
+
+    params = []
+    if search:
+        # si el search es un número, busca por ID; si no, por email
+        if search.isdigit():
+            query += " AND id = %s"
+            params.append(int(search))
+        else:
+            query += " AND email LIKE %s"
+            params.append(f"%{search}%")
+
+    query += f" ORDER BY {filtro_columna} {orden}"
+    cursor.execute(query, params)
+    usuarios = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return usuarios
+
+
+def obtener_salon_basico(filtro_columna='id_salon', orden='ASC', search=''):
+    
+    columnas_permitidas = ['id_salon', 'nombre_salon']
+    if filtro_columna not in columnas_permitidas:
+        filtro_columna = 'id_salon'
+    orden = orden.upper()
+    if orden not in ['ASC', 'DESC']:
+        orden = 'ASC'
+
+    conn = get_connection()
+    cursor = conn.cursor()
+    query = """
+        SELECT id_salon, nombre_salon
+        FROM Salones
+        WHERE estado = 'activo'
+    """
+    params = []
+    if search:
+        # si el search es un número, busca por ID; si no, por nombre
+        if search.isdigit():
+            query += " AND id_salon = %s"
+            params.append(int(search))
+        else:
+            query += " AND nombre_salon LIKE %s"
+            params.append(f"%{search}%")
+
+    query += f" ORDER BY {filtro_columna} {orden}"
+    
+
+    cursor.execute(query, params)
+    salones = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return salones
+
+
+
+__all__ = [
+    'get_connection',
+    'insertar_usuario',
+    'obtener_todos_usuarios',
+    'obtener_usuario_por_email',
+    'obtener_usuario_por_id',
+    'obtener_todos_Salas',
+    'Sala_Existe',
+    'eliminar_salon',
+    'agregar_salon',
+    'obtener_Salones',
+    'insertar_computadora',
+    'existe_matricula',
+    'insertar_mouse',
+    'insertar_teclado',
+    'insertar_pantalla',
+    'obtener_id_y_nombre_salones',
+    'obtener_computadoras_con_sala_id',
+    'Cantidad_equipos',
+    'obtener_todas_computadoras',
+    'obtener_usuarios_basico',
+    'obtener_salon_basico'
+]

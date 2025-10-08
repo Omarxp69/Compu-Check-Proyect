@@ -272,7 +272,7 @@
       <h2>Mostrar Salas</h2>
       <form method="get" action="{{ url_for('gestionar_salas') }}">
             <label for="Buscar">Buscar:</label>
-            <input type="text" name="search" placeholder="Buscar por ID o Nombre de Sala" value="{{ search }}">
+            <input type="text" name="search" placeholder="Buscar por ID o Nombre del Sala" value="{{ search }}">
             
             <label for="filtro_columna">Ordenar por:</label>
             <select name="filtro_columna" id="filtro_columna">
@@ -300,7 +300,7 @@
           <thead>
               <tr>
                   <th>ID</th>
-                  <th>Nombre del Salon</th>
+                  <th>Nombre Sala</th>
                   <th>Ubicacion</th>
                   <th>Cantidad de equipos</th>
                   <th>Estado</th>
