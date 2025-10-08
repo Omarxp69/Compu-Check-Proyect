@@ -814,9 +814,6 @@ def eliminar_computadora():
             conn.close()
 
 
-
-
-
 if __name__ == "__main__":
     app.config.from_object(config['development'])
     app.run(debug=True)
