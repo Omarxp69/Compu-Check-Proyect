@@ -11,12 +11,12 @@ import os
 load_dotenv()
 from werkzeug.utils import secure_filename
 import glob 
-from flask_wtf import CSRFProtect
+from datetime import timedelta,datetime
 
-csrf = CSRFProtect()
 
 app=Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY")
+app.permanent_session_lifetime = timedelta(hours=1)
 
 
 UPLOAD_FOLDER = 'static/uploads'
@@ -76,6 +76,39 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get('user_id')
+        if not user_id:
+            flash("❌ Debes iniciar sesión primero.")
+            return redirect(url_for('login'))
+        
+        user = obtener_usuario_por_id(user_id)
+        if not user:
+            flash("❌ Usuario no encontrado o inactivo.")
+            session.pop('user_id', None)
+            return redirect(url_for('login'))
+        
+        # Guardamos el usuario en g para que esté disponible en la ruta
+        from flask import g
+        g.current_user = user
+
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.before_request
+def check_session_timeout():
+    now = datetime.utcnow().timestamp()  # float
+    last_active = session.get('last_active')
+    if last_active is not None:
+        delta = now - last_active
+        if delta > 3600:  # una hora
+            session.clear()
+            flash("⚠️ Tu sesión ha expirado.")
+            return redirect(url_for('login'))
+    session['last_active'] = now
 
 
 
@@ -145,7 +178,11 @@ def register():
         return redirect(url_for('login'))
     return render_template("register.html")
 
+
+
+
 @app.route('/logout')
+@login_required
 def logout():
     session.clear()
     flash("✅ Has cerrado sesión correctamente")
@@ -171,9 +208,19 @@ def get_current_user():
     }
 
 @app.route('/dashboard')
+@login_required
 @role_required('admin', 'moderador', 'user')
 def dashboard():
+
     user = get_current_user()
+
+    user_obtenido = obtener_usuario_por_id(session['user_id'])
+    if not user:
+        session.clear()
+        flash("⚠️ Tu sesión ha expirado.")
+        return redirect(url_for('login'))
+
+
     if not user:
         flash("❌ Debes iniciar sesión")
         return redirect(url_for('login'))
@@ -186,6 +233,7 @@ def dashboard():
 
 @app.route('/update_profile', methods=['POST'])
 @role_required('admin', 'moderador', 'user')
+@login_required
 def update_profile():
     user_id = session.get("user_id")
     if not user_id:
@@ -239,6 +287,7 @@ def update_profile():
     return redirect(url_for('dashboard'))
 
 @app.route('/delete_account', methods=['POST'])
+@login_required
 @role_required('admin', 'moderador', 'user')
 def delete_account():
     user_id = session.get("user_id")
@@ -260,6 +309,7 @@ def delete_account():
 
 
 @app.route('/profile')
+@login_required
 @role_required('admin', 'moderador', 'user')
 def perfil():
     user = get_current_user()
@@ -271,6 +321,7 @@ def perfil():
 
 # aqui se crearan salas
 @app.route('/Salas', methods=['GET', 'POST'])
+@login_required
 @admin_required
 def salas():
     user = get_current_user()
@@ -306,6 +357,7 @@ def salas():
     return render_template('salas.html',user_name=user_name,user_role=user_role,user_profile_pic=user_profile_pic)
 
 @app.route('/Gestionar_Usuarios', methods=['GET', 'POST'])
+@login_required
 @role_required('admin', 'moderador')
 def gestionar_usuarios():
 
@@ -331,6 +383,7 @@ def gestionar_usuarios():
     )
 
 @app.route('/actualizar_usuario', methods=['POST'])
+@login_required
 @admin_required
 def actualizar_usuario():
     user_id = request.form.get('user_id')
@@ -368,6 +421,7 @@ def actualizar_usuario():
 
 
 @app.route('/Gestionar_Salas', methods=['GET', 'POST'])
+@login_required
 @admin_required
 def gestionar_salas():
 
@@ -396,6 +450,7 @@ def gestionar_salas():
 
 
 @app.route('/actualizar_sala', methods=['POST'])
+@login_required
 @admin_required
 def actualizar_sala():
     sala_id = request.form.get('sala_id')
@@ -430,6 +485,7 @@ def actualizar_sala():
 
 
 @app.route('/eliminar_sala', methods=['POST'])
+@login_required
 @admin_required
 def eliminar_sala():
     try:
@@ -509,6 +565,7 @@ def eliminar_sala():
 
 
 @app.route('/Computadoras', methods=['GET', 'POST'])
+@login_required
 @admin_required
 def computadoras():
     user = get_current_user()
@@ -582,6 +639,7 @@ def computadoras():
 
 
 @app.route('/Gestionar_Computadoras', methods=['GET', 'POST'])
+@login_required
 @admin_required
 def gestionar_computadoras():
     user = get_current_user()
@@ -609,6 +667,7 @@ def gestionar_computadoras():
 )
 
 @app.route('/actualizar_computadora', methods=['POST'])
+@login_required
 @admin_required
 def actualizar_computadora():  
     # Datos del formulario
@@ -678,6 +737,7 @@ def actualizar_computadora():
 
 
 @app.route('/eliminar_computadora', methods=['POST'])
+@login_required
 @admin_required
 def eliminar_computadora():
     try:
@@ -759,5 +819,4 @@ def eliminar_computadora():
 
 if __name__ == "__main__":
     app.config.from_object(config['development'])
-    csrf.init_app(app)
-    app.run()
+    app.run(debug=True)

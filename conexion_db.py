@@ -78,6 +78,15 @@ def obtener_usuario_por_email(email):
     cursor.close()
     db.close()
     return user
+def obtener_usuario_por_id(user_id):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)  # para obtener un diccionario
+    cursor.execute("SELECT * FROM users WHERE id = %s AND estado = 1", (user_id,))
+    user = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return user
+
 
 def obtener_todos_Salas(filtro_columna='id_salon', orden='ASC', search=''):
     columnas_permitidas = ['id_salon', 'nombre_salon', 'ubicacion', 'cantidad_equipos', 'estado', 'descripcion', 'fecha_creacion', 'updated_at']
