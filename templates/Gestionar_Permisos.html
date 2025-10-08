@@ -4,7 +4,7 @@
   <link rel="stylesheet" href="../static/css/index_style.css">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Compuchek - Gestionar_Salas</title>
+  <title>Compuchek - Gestionar_Permisos</title>
   <style>
     form[method="get"] {
     display: flex;
@@ -174,11 +174,11 @@
         {% if user_role == 'admin' %}
           <li><a href="/Gestionar_Usuarios">👥 Gestionar Usuarios</a></li>
           <li><a href="/Salas">🛋️ Salas</a></li>
-          <li class="active"><a href="/Gestionar_Salas">🛠️ Gestionar Salas</a></li>
+          <li><a href="/Gestionar_Salas">🛠️ Gestionar Salas</a></li>
           <li><a href="/Computadoras">💻Computadoras</a></li>
           <li><a href="/Gestionar_Computadoras">🛠️ Gestionar Computadoras</a></li>
           <li><a href="/Permisos_Usuarios">🔑 Permisos Usuarios</a></li>
-          <li><a href="/Gestionar_Permisos">🛠️ Gestionar_Permisos</a></li>
+          <li class="active"><a href="/Gestionar_Permisos">🛠️ Gestionar_Permisos</a></li>
           <li><a href="/reports">📊 Reportes</a></li>
         {% elif user_role == 'moderador' %}
           <li><a href="/Gestionar_Usuarios">👥 Gestionar Usuarios</a></li>
@@ -192,42 +192,12 @@
     <!-- Main -->
     <main class="dashboard-main">
       <header>
-        <h1>Gestionar Salas</h1>
+        <h1>Gestionar Permisos</h1>
       </header>
       {% if user_role == 'admin' %}
-        <h2>Modificar Estado de Sala</h2>
-        <form method="post" action="{{ url_for('actualizar_sala') }}">
-            <input type="hidden" id="edit_sala_id" name="sala_id">
+        
 
-            <label>ID:</label>
-            <input type="text" id="edit_id" disabled>
-
-            <label>Nombre Sala:</label>
-            <input type="text" id="edit_nombre" disabled>
-
-            <label>Ubicación:</label>
-            <input type="text" id="edit_ubicacion" disabled>
-
-            <label>Cantidad Equipos:</label>
-            <input type="number" id="edit_cantidad" disabled>
-
-            <label>Estado:</label>
-            <select id="edit_estado" name="estado">
-              <option value="activo">Activo</option>
-              <option value="mantenimiento">Mantenimiento</option>
-              <option value="fuera de servicio">Fuera de servicio</option>
-            </select>
-
-            <!-- Campo para contraseña del admin -->
-            <label>Contraseña del Admin:</label>
-            <input type="password" name="admin_password" placeholder="Ingresa tu contraseña" required>
-
-            <div style="display:flex; gap:10px; margin-top:10px;">
-                <button type="submit">Actualizar Estado</button>
-            </div>
-        </form>
-
-        <h2>Eliminar Sala</h2>
+        <h2>Eliminar Permiso</h2>
         <form method="post" id="form-eliminar-sala" action="{{ url_for('eliminar_sala') }}">
             <input type="hidden" id="delete_sala_id" name="sala_id">
 
@@ -270,60 +240,67 @@
           </div>
         {% endif %}
       {% endwith %}
-      <h2>Mostrar Salas</h2>
-      <form method="get" action="{{ url_for('gestionar_salas') }}">
-            <label for="Buscar">Buscar:</label>
-            <input type="text" name="search" placeholder="Buscar por ID o Nombre del Sala" value="{{ search }}">
-            
-            <label for="filtro_columna">Ordenar por:</label>
-            <select name="filtro_columna" id="filtro_columna">
-                <option value="id_salon" {% if filtro_columna=='id_salon' %}selected{% endif %}>ID</option>
-                <option value="nombre_salon" {% if filtro_columna=='nombre_salon' %}selected{% endif %}>Nombre</option>
-                <option value="ubicacion" {% if filtro_columna=='ubicacion' %}selected{% endif %}>Ubicacion</option>
-                <option value="cantidad_equipos" {% if filtro_columna=='cantidad_equipos' %}selected{% endif %}>Cantidad de equipos</option>
-                <option value="estado" {% if filtro_columna=='estado' %}selected{% endif %}>Estado</option>
-                <option value="descripcion" {% if filtro_columna=='descripcion' %}selected{% endif %}>Descripcion</option>
-                <option value="fecha_creacion" {% if filtro_columna=='fecha_creacion' %}selected{% endif %}>Fecha de Creacion</option>
-                <option value="updated_at" {% if filtro_columna=='updated_at' %}selected{% endif %}>Fecha de Actualizacion</option>
-            </select>
+      <h2>Mostrar Permisos</h2>
+      <form method="get" action="{{ url_for('gestionar_permisos') }}">
+          <label for="search">Buscar:</label>
+          <input type="text" name="search" placeholder="Buscar por usuario o salón" value="{{ search }}">
 
-            <select name="orden" id="orden">
-                <option value="ASC" {% if orden=='ASC' %}selected{% endif %}>Ascendente</option>
-                <option value="DESC" {% if orden=='DESC' %}selected{% endif %}>Descendente</option>
-            </select>
+          <label for="tipo_busqueda">Buscar por:</label>
+          <select name="tipo_busqueda" id="tipo_busqueda">
+              <option value="todos" {% if tipo_busqueda=='todos' %}selected{% endif %}>Usuario o Salón</option>
+              <option value="usuario" {% if tipo_busqueda=='usuario' %}selected{% endif %}>Usuario</option>
+              <option value="salon" {% if tipo_busqueda=='salon' %}selected{% endif %}>Salón</option>
+          </select>
 
-            <button type="submit">Aplicar</button>
-        </form>
+          <label for="filtro_columna">Ordenar por:</label>
+          <select name="filtro_columna" id="filtro_columna">
+              <option value="id_permiso" {% if filtro_columna=='id_permiso' %}selected{% endif %}>ID Permiso</option>
+              <option value="id_usuario" {% if filtro_columna=='id_usuario' %}selected{% endif %}>ID Usuario</option>
+              <option value="nombre_usuario" {% if filtro_columna=='nombre_usuario' %}selected{% endif %}>Nombre Usuario</option>
+              <option value="id_salon" {% if filtro_columna=='id_salon' %}selected{% endif %}>ID Salón</option>
+              <option value="nombre_salon" {% if filtro_columna=='nombre_salon' %}selected{% endif %}>Nombre Salón</option>
+              <option value="fecha_asignacion" {% if filtro_columna=='fecha_asignacion' %}selected{% endif %}>Fecha Asignación</option>
+              <option value="asignado_por" {% if filtro_columna=='asignado_por' %}selected{% endif %}>Asignado Por</option>
+          </select>
 
+          <select name="orden" id="orden">
+              <option value="ASC" {% if orden=='ASC' %}selected{% endif %}>Ascendente</option>
+              <option value="DESC" {% if orden=='DESC' %}selected{% endif %}>Descendente</option>
+          </select>
 
-
+          <button type="submit">Aplicar</button>
+      </form>
+      <!-- Tabla de permisos -->
       <table>
           <thead>
               <tr>
-                  <th>ID</th>
-                  <th>Nombre Sala</th>
-                  <th>Ubicacion</th>
-                  <th>Cantidad de equipos</th>
-                  <th>Estado</th>
-                  <th>Descripcion</th>
-                  <th>Fecha de Creacion</th>
-                  <th>Fecha de Actualizacion</th>
+                  <th>ID Permiso</th>
+                  <th>ID Usuario</th>
+                  <th>Usuario</th>
+                  <th>ID Salón</th>
+                  <th>Salón</th>
+                  <th>Fecha Asignación</th>
+                  <th>Asignado Por</th>
               </tr>
           </thead>
           <tbody>
-            {% for s in Salones %}
-            <tr class="sala-row" data-sala-id="{{ s[0] }}">
-                <td>{{ s[0] }}</td>
-                <td>{{ s[1] }}</td>
-                <td>{{ s[2] }}</td>
-                <td>{{ s[3] }}</td>
-                <td>{{ s[4] }}</td>
-                <td>{{ s[5] }}</td>
-                <td>{{ s[6].strftime('%d/%m/%Y %H:%M') }}</td>
-                <td>{{ s[7].strftime('%d/%m/%Y %H:%M') }}</td>
+            {% for permiso in permisos %}
+            <tr>
+                <td>{{ permiso['id_permiso'] }}</td>
+                <td>{{ permiso['id_usuario'] }}</td>
+                <td>{{ permiso['nombre_usuario'] }}</td>
+                <td>{{ permiso['id_salon'] }}</td>
+                <td>{{ permiso['nombre_salon'] }}</td>
+                <td>{{ permiso['fecha_asignacion'] }}</td>
+                <td>{{ permiso['asignado_por'] or 'Sin asignador' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7">No se encontraron permisos.</td>
             </tr>
             {% endfor %}
-          </tbody>
+            </tbody>
+      </table>
           <script>
             const filas = document.querySelectorAll('.sala-row');
             filas.forEach(fila => {

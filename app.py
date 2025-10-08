@@ -7,6 +7,7 @@ from werkzeug.utils import secure_filename
 import glob 
 from datetime import timedelta,datetime
 
+
 from config import config
 from validaciones import correo_valido, contrasena_valida 
 from conexion_db import (
@@ -30,7 +31,11 @@ from conexion_db import (
     Cantidad_equipos,
     obtener_todas_computadoras,
     obtener_usuarios_basico,
-    obtener_salon_basico
+    obtener_salon_basico,
+    insertar_acceso_salon,
+    acceso_existente,
+    obtener_salon_por_id,
+    obtener_permisos
 )
 
 
@@ -308,7 +313,7 @@ def update_profile():
     cursor.close()
     db.close()
     # Nunca redirijas a login, siempre al dashboard
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('perfil'))
 
 @app.route('/delete_account', methods=['POST'])
 @login_required
@@ -329,8 +334,6 @@ def delete_account():
     session.clear()
     flash("✅ Tu cuenta ha sido desactivada. Puedes reactivarla más tarde.")
     return redirect(url_for('index'))
-
-
 
 @app.route('/profile')
 @login_required
@@ -443,13 +446,10 @@ def actualizar_usuario():
     flash("✅ Usuario actualizado correctamente.")
     return redirect(url_for('gestionar_usuarios'))
 
-
 @app.route('/Gestionar_Salas', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def gestionar_salas():
-
-
     user = get_current_user()
     user_name = user['name'].capitalize()
     user_role = user['role']
@@ -597,6 +597,7 @@ def computadoras():
     user_role=user['role']
     user_profile_pic=user['foto_perfil']
 
+    salones = obtener_id_y_nombre_salones()
 
 
 
@@ -655,11 +656,11 @@ def computadoras():
         id_teclado = insertar_teclado(teclado_marca, teclado_tipo, teclado_estado)
         id_pantalla = insertar_pantalla(pantalla_marca, pantalla_estado)
         insertar_computadora(matricula, marca, sistema_operativo, estado_computadora,
-                             id_pantalla=id_pantalla, id_teclado=id_teclado,
-                             id_mouse=id_mouse, id_salon=id_salon)
+                id_pantalla=id_pantalla, id_teclado=id_teclado,
+                id_mouse=id_mouse, id_salon=id_salon)
         Cantidad_equipos(id_salon)
         flash("✅ Computadora agregada exitosamente.")
-    return render_template('Computadoras.html',user_name=user_name,user_role=user_role,user_profile_pic=user_profile_pic)
+    return render_template('Computadoras.html',user_name=user_name,user_role=user_role,user_profile_pic=user_profile_pic,salones=salones)
 
 
 @app.route('/Gestionar_Computadoras', methods=['GET', 'POST'])
@@ -839,36 +840,110 @@ def eliminar_computadora():
 
 
 
-@app.route('/Asignar_Salones',methods=['GET', 'POST'])
+@app.route('/Permisos_Usuarios', methods=['GET', 'POST'])
 @login_required
 @role_required('admin', 'moderador')
-def asignar_salones():
+def permisos_usuarios():
     user = get_current_user()
-    user_name=user['name'].capitalize()
-    user_role=user['role']
-    user_profile_pic=user['foto_perfil']
+    user_name = user['name'].capitalize()
+    user_role = user['role']
+    user_profile_pic = user['foto_perfil']
+
+    filtro_columna_usuarios = request.args.get('filtro_columna_usuarios', 'id')
+    orden_usuarios = request.args.get('orden_usuarios', 'ASC')
+    search_usuarios = request.args.get('search_usuarios', '')
+    usuarios = obtener_usuarios_basico(filtro_columna_usuarios, orden_usuarios, search_usuarios)
+
+    filtro_columna_salones = request.args.get('filtro_columna_salones', 'id_salon')
+    orden_salones = request.args.get('orden_salones', 'ASC')
+    search_salones = request.args.get('search_salones', '')
+    salones = obtener_salon_basico(filtro_columna_salones, orden_salones, search_salones)
 
     if request.method == 'POST':
         id_usuario = request.form.get('id_usuario')
         id_salon = request.form.get('id_salon')
 
-        print(id_usuario)
-        print(id_salon)
+        # Validaciones de presencia
+        if not id_usuario and not id_salon:
+            flash("❌ Debes seleccionar usuario y salón")
+            return redirect(url_for('permisos_usuarios'))
+        if not id_usuario:
+            flash("❌ Debes seleccionar un usuario")
+            return redirect(url_for('permisos_usuarios'))
+        if not id_salon:
+            flash("❌ Debes seleccionar un salón")
+            return redirect(url_for('permisos_usuarios'))
 
-        users=obtener_usuarios_basico()
+        # Validar que los IDs sean números
+        if not id_usuario.isdigit() or not id_salon.isdigit():
+            flash("❌ IDs inválidos")
+            return redirect(url_for('permisos_usuarios'))
+
+        # Convertir a int
+        id_usuario = int(id_usuario)
+        id_salon = int(id_salon)
+
+        # Validar que existan realmente en la DB
+        usuario_valido = obtener_usuario_por_id(id_usuario)
+        salon_valido = obtener_salon_por_id(id_salon)
 
 
+        if not usuario_valido:
+            flash("❌ Usuario no encontrado")
+            return redirect(url_for('permisos_usuarios'))
+        if not salon_valido:
+            flash("❌ Salón no encontrado")
+            return redirect(url_for('permisos_usuarios'))
 
+        # Prevenir accesos duplicados
+        if not acceso_existente(id_usuario, id_salon):
+            insertar_acceso_salon(id_usuario, id_salon, user['id'])
+            flash("✅ Acceso asignado correctamente")
+        else:
+            flash("⚠️ El usuario ya tiene acceso a ese salón")
 
+        return redirect(url_for('permisos_usuarios'))
 
-    return render_template('Asignar_Salones.html',
+    return render_template('Permisos_Usuarios.html',
         user_name=user_name,
         user_role=user_role,
-        user_profile_pic=user_profile_pic,)
+        user_profile_pic=user_profile_pic,
+        usuarios=usuarios,
+        salones=salones)
 
-    
+
+@app.route('/Gestionar_Permisos', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'moderador')
+def gestionar_permisos():
+    user = get_current_user()
+    user_name = user['name'].capitalize()
+    user_role = user['role']
+    user_profile_pic = user['foto_perfil']
+
+    filtro_columna = request.args.get('filtro_columna', 'id_salon')
+    orden = request.args.get('orden', 'ASC')
+    search = request.args.get('search', '').strip()
 
 
+
+
+
+    return render_template('Gestionar_Permisos.html',
+        user_name=user_name,
+        user_role=user_role,
+        user_profile_pic=user_profile_pic,
+    )
+
+
+
+
+
+@app.route('/Gestionar_Permisos', methods=['GET', 'POST'])
+@login_required
+@role_required('admin', 'moderador')
+def Eliminar_permisos():
+    pass
 
 
 

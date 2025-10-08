@@ -162,6 +162,18 @@ def obtener_Salones():
     cursor.close()
     conn.close()
     return registros
+
+def obtener_salon_por_id(id_salon):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM Salones WHERE id_salon = %s AND estado='activo'", (id_salon,))
+    salon = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return salon
+
+
+
 # ===================== COMPUTADORAS =====================
 def insertar_computadora(matricula, marca, sistema_operativo, estado="bueno",
                          fecha_adquisicion=None, id_pantalla=None,
@@ -357,6 +369,12 @@ def obtener_todas_computadoras(filtro_columna='id_computadora', orden='ASC', sea
 
 
 
+    
+
+
+
+
+
 def obtener_usuarios_basico(filtro_columna='id', orden='ASC', search=''):
     columnas_permitidas = ['id', 'nombre','email']
     if filtro_columna not in columnas_permitidas:
@@ -373,7 +391,7 @@ def obtener_usuarios_basico(filtro_columna='id', orden='ASC', search=''):
     query = f"""
         SELECT id, nombre, email
         FROM users
-        WHERE estado = 1
+        WHERE estado = 1 AND rol = 'user'
     """
 
 
@@ -431,6 +449,97 @@ def obtener_salon_basico(filtro_columna='id_salon', orden='ASC', search=''):
     return salones
 
 
+def insertar_acceso_salon(id_usuario, id_salon, asignado_por):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO Accesos_Salones (id_usuario, id_salon, asignado_por)
+            VALUES (%s, %s, %s)
+        """, (id_usuario, id_salon, asignado_por))
+        conn.commit()
+    except Exception as e:
+        print("Error al asignar acceso a salón:", e)
+        if conn:
+            conn.rollback()
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+def acceso_existente(id_usuario, id_salon):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT 1 FROM Accesos_Salones
+            WHERE id_usuario = %s AND id_salon = %s
+        """, (id_usuario, id_salon))
+        existe = cursor.fetchone() is not None
+        return existe
+    except Exception as e:
+        print("Error al verificar acceso existente:", e)
+        return False
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+def obtener_permisos(filtro_columna='id_permiso', orden='ASC', search=''):
+    # Columnas permitidas para ordenamiento
+    columnas_permitidas = [
+        'id_permiso', 'id_usuario', 'nombre_usuario',
+        'id_salon', 'nombre_salon', 'fecha_asignacion', 'asignado_por'
+    ]
+    if filtro_columna not in columnas_permitidas:
+        filtro_columna = 'id_permiso'
+
+    orden = orden.upper()
+    if orden not in ['ASC', 'DESC']:
+        orden = 'ASC'
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    query = """
+        SELECT 
+            p.id_permiso,
+            u.id AS id_usuario,
+            u.nombre AS nombre_usuario,
+            s.id_salon AS id_salon,
+            s.nombre_salon,
+            p.fecha_asignacion,
+            asignador.nombre AS asignado_por
+        FROM Permisos p
+        INNER JOIN users u ON p.id_usuario = u.id
+        INNER JOIN Salones s ON p.id_salon = s.id_salon
+        LEFT JOIN users asignador ON p.asignado_por = asignador.id
+    """
+
+    params = []
+    if search:
+        # Si es un número, buscar por id_permiso; si no, por nombre de usuario o nombre del salón
+        if search.isdigit():
+            query += " WHERE p.id_permiso = %s"
+            params.append(int(search))
+        else:
+            query += " WHERE u.nombre LIKE %s OR s.nombre_salon LIKE %s"
+            params.extend([f"%{search}%", f"%{search}%"])
+
+    query += f" ORDER BY {filtro_columna} {orden}"
+
+    cursor.execute(query, params)
+    permisos = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return permisos
+
+
+
+
 
 __all__ = [
     'get_connection',
@@ -453,5 +562,10 @@ __all__ = [
     'Cantidad_equipos',
     'obtener_todas_computadoras',
     'obtener_usuarios_basico',
-    'obtener_salon_basico'
+    'obtener_salon_basico',
+    'insertar_acceso_salon',
+    'acceso_existente',
+    'obtener_salon_por_id',
+    'obtener_permisos'
 ]
+

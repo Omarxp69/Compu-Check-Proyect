@@ -61,6 +61,24 @@
       flex: 1; /* ambas tablas ocupan el mismo ancho */
       min-width: 300px; /* evita que se rompan en pantallas pequeñas */
     }
+    .filtro-form {
+      display: flex;
+      flex-wrap: wrap; /* se acomoda en vertical si la pantalla es muy pequeña */
+      gap: 10px; /* espacio entre los elementos */
+      align-items: center; /* alinea verticalmente los elementos */
+    }
+
+    .filtro-form input,
+    .filtro-form select {
+      flex: 1; /* ocupa el máximo espacio disponible */
+      min-width: 120px; /* ancho mínimo para no romper el diseño */
+    }
+
+    .filtro-form button {
+      flex: none; /* no crecerá, mantiene tamaño de contenido */
+    }
+        
+    
   </style>
 </head>
 <body>
@@ -77,22 +95,22 @@
       </div>
 
       <h2>Compuchek</h2>
-      <ul>
-
-
         <ul>
           <li><a href="/">🏠 Inicio</a></li>
         {% if user_role == 'admin' %}
-          <li class="active"><a href="/Salas">🛋️ Salas</a></li>
+          <li><a href="/Gestionar_Usuarios">👥 Gestionar Usuarios</a></li>
+          <li><a href="/Salas">🛋️ Salas</a></li>
           <li><a href="/Gestionar_Salas">🛠️ Gestionar Salas</a></li>
           <li><a href="/Computadoras">💻Computadoras</a></li>
           <li><a href="/Gestionar_Computadoras">🛠️ Gestionar Computadoras</a></li>
-          <li><a href="/Gestionar_Usuarios">👥 Gestionar Usuarios</a></li>
-          <li><a href="/Asignar_Salones">👥 Asignar Salones</a></li>
+          <li class="active"><a href="/Permisos_Usuarios">🔑 Permisos Usuarios</a></li>
+          <li><a href="/Gestionar_Permisos">🛠️ Gestionar_Permisos</a></li>
           <li><a href="/reports">📊 Reportes</a></li>
         {% elif user_role == 'moderador' %}
           <li><a href="/Gestionar_Usuarios">👥 Gestionar Usuarios</a></li>
           <li><a href="/reports">📊 Reportes</a></li>
+        {% elif user_role == 'user' %}
+          <li><a href="/subir_reporte">📝 Subir reporte</a></li>
         {% endif %}
         <li><a href="/profile">✏️ Editar Perfil</a></li>
         <li><a href="/logout">🚪 Cerrar sesión</a></li>
@@ -105,10 +123,9 @@
     <!-- Main -->
     <main class="dashboard-main">
       <header>
-        <h1>Crear Salas</h1>
+        <h1>Asignar Accesos de salones</h1>
       </header>
       <section class="form-section">
-        <h2>Asignar Accesos a salones</h2>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             <div class="flash-messages">
@@ -118,39 +135,66 @@
             </div>
           {% endif %}
         {% endwith %}
-        <form action="{{ url_for('asignar_salones') }}" method="POST">
+        <form action="{{ url_for('permisos_usuarios') }}" method="POST">
           <fieldset class="form-group">
             <legend>Datos de Asignación</legend>
-            <!-- Seleccionar Usuario -->
-            <label for="usuario">Usuario:</label>
-            <select name="id_usuario" id="usuario" required>
-                <option value="" disabled selected>Selecciona un usuario</option>
-                {% for usuario in usuarios %}
-                <option value="{{ usuario.id }}">{{ usuario.nombre }} {{ usuario.apellido_paterno }}</option>
-                {% endfor %}
-            </select>
 
-            <!-- Seleccionar Salón -->
-            <label for="salon">Salón:</label>
-            <select name="id_salon" id="salon" required>
-                <option value="" disabled selected>Selecciona un salón</option>
-                {% for salon in salones %}
-                <option value="{{ salon.id_salon }}">{{ salon.nombre_salon }} - {{ salon.ubicacion }}</option>
-                {% endfor %}
-            </select>
+            <!-- ID Usuario -->
+            <label for="usuario_id">ID Usuario:</label>
+            <input type="text" id="usuario_id" name="id_usuario" readonly>
+
+            <!-- ID Salón -->
+            <label for="salon_id">ID Salón:</label>
+            <input type="text" id="salon_id" name="id_salon" readonly>
 
             <button type="submit">Asignar Salón</button>
-                    
           </fieldset>
         </form>
+      
       </section>
       <div class="form-section">
         <h2>Usuarios y Salones</h2>
         <div class="tablas-lado-a-lado">
+          <!-- Filtro Usuarios sobre su tabla -->
+          <h2>Filtrar Usuarios</h2>
+          <form class="filtro-form" method="get" action="{{ url_for('permisos_usuarios') }}">
+              <input type="text" name="search_usuarios" placeholder="Buscar por ID o Email" value="{{ request.args.get('search_usuarios','') }}">
+              
+              <select name="filtro_columna_usuarios">
+                  <option value="id" {% if request.args.get('filtro_columna_usuarios')=='id' %}selected{% endif %}>ID</option>
+                  <option value="nombre" {% if request.args.get('filtro_columna_usuarios')=='nombre' %}selected{% endif %}>Nombre</option>
+                  <option value="email" {% if request.args.get('filtro_columna_usuarios')=='email' %}selected{% endif %}>Email</option>
+              </select>
+
+              <select name="orden_usuarios">
+                  <option value="ASC" {% if request.args.get('orden_usuarios')=='ASC' %}selected{% endif %}>Ascendente</option>
+                  <option value="DESC" {% if request.args.get('orden_usuarios')=='DESC' %}selected{% endif %}>Descendente</option>
+              </select>
+
+              <button type="submit">Aplicar</button>
+          </form>
+
+          <!-- Filtro Salones sobre su tabla -->
+          <h2>Filtrar Salones</h2>
+          <form class="filtro-form" method="get" action="{{ url_for('permisos_usuarios') }}">
+              <input type="text" name="search_salones" placeholder="Buscar por ID o Nombre del Salón" value="{{ request.args.get('search_salones','') }}">
+              
+              <select name="filtro_columna_salones">
+                  <option value="id_salon" {% if request.args.get('filtro_columna_salones')=='id_salon' %}selected{% endif %}>ID</option>
+                  <option value="nombre_salon" {% if request.args.get('filtro_columna_salones')=='nombre_salon' %}selected{% endif %}>Nombre</option>
+              </select>
+
+              <select name="orden_salones">
+                  <option value="ASC" {% if request.args.get('orden_salones')=='ASC' %}selected{% endif %}>Ascendente</option>
+                  <option value="DESC" {% if request.args.get('orden_salones')=='DESC' %}selected{% endif %}>Descendente</option>
+              </select>
+
+              <button type="submit">Aplicar</button>
+          </form>
           <!-- Tabla Usuarios -->
           <div class="tabla-wrapper">
             <h3>Usuarios</h3>
-            <table>
+            <table id="tabla_usuarios">
               <thead>
                 <tr>
                   <th>ID</th>
@@ -160,7 +204,7 @@
               </thead>
               <tbody>
                 {% for u in usuarios %}
-                <tr>
+                <tr data-id="{{ u[0] }}">
                   <td>{{ u[0] }}</td>
                   <td>{{ u[1] }}</td>
                   <td>{{ u[2] }}</td>
@@ -173,20 +217,18 @@
           <!-- Tabla Salones -->
           <div class="tabla-wrapper">
             <h3>Salones</h3>
-            <table>
+            <table id="tabla_salones">
               <thead>
                 <tr>
                   <th>ID</th>
                   <th>Nombre</th>
-                  <th>Ubicación</th>
                 </tr>
               </thead>
               <tbody>
                 {% for s in salones %}
-                <tr>
+                <tr data-id="{{ s[0] }}">
                   <td>{{ s[0] }}</td>
                   <td>{{ s[1] }}</td>
-                  <td>{{ s[2] }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
@@ -206,4 +248,20 @@
     </main>
   </div>
 </body>
+<script>
+  // Al hacer click en un usuario
+  document.querySelectorAll("#tabla_usuarios tbody tr").forEach(row => {
+    row.addEventListener("click", () => {
+      document.getElementById("usuario_id").value = row.dataset.id;
+    });
+  });
+
+  // Al hacer click en un salón
+  document.querySelectorAll("#tabla_salones tbody tr").forEach(row => {
+    row.addEventListener("click", () => {
+      document.getElementById("salon_id").value = row.dataset.id;
+    });
+  });
+</script>
+
 </html>
